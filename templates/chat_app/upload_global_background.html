@@ -1,0 +1,6 @@
+<h2>上传使用说明截图</h2>
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">上传</button>
+</form>

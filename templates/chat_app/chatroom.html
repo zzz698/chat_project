@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>聊天室</title>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        /* 按钮样式 */
+        #showImageBtn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #008CBA;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin: 30px;
+            font-size: 22px;
+            border-radius: 4px;
+        }
+        #showImageBtn:hover {
+            background-color: #005f75;
+        }
+
+        /* 弹窗遮罩层 */
+        #imageModal {
+            display: none;  /* 默认隐藏 */
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0,0,0,0.7);
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 弹窗图片 */
+        #imageModal img {
+            max-width: 90vw;
+            max-height: 80vh;
+            border-radius: 8px;
+            box-shadow: 0 0 15px #000;
+        }
+
+        /* 关闭按钮 */
+        #imageModal span.close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: white;
+            font-size: 30px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+
+
+    </style>
+</head>
+<body>
+
+<button id="showImageBtn">玩法介绍</button>
+
+<div id="imageModal">
+    <span class="close">&times;</span>
+    <img src="{% if global_background_url %}{{ global_background_url }}{% else %}/static/default_bg.jpg{% endif %}" alt="弹出图片" />
+</div>
+
+<script>
+    const btn = document.getElementById('showImageBtn');
+    const modal = document.getElementById('imageModal');
+    const closeBtn = modal.querySelector('.close');
+
+    btn.onclick = function() {
+        modal.style.display = 'flex';
+    }
+    closeBtn.onclick = function() {
+        modal.style.display = 'none';
+    }
+    // 点击遮罩区域关闭弹窗
+    modal.onclick = function(e) {
+        if(e.target === modal) {
+            modal.style.display = 'none';
+        }
+    }
+</script>
+
+</body>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        margin: 0;
+        font-size: 22px;
+        overflow: hidden;
+    }
+
+    .top-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: #eee;
+        padding: 10px 20px;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .top-bar h2 {
+        font-size: 22px;
+        margin: 0;
+    }
+
+    .top-bar span,
+    .top-bar a {
+        font-size: 22px;
+        white-space: nowrap;
+    }
+
+    #chat-box {
+        flex: 1;
+        overflow-y: auto;
+        padding: 10px;
+        background: #f2f2f2;
+        display: flex;
+        flex-direction: column;
+    }
+    .top-bar,
+    #chat-box,
+    #message-form {
+        background-color: rgba(255, 255, 255,1.00);  /* 白色 + 80% 不透明 */
+        backdrop-filter: blur(5px);  /* 可选，加点磨砂感 */
+    }
+
+    .message {
+        max-width: 80%;
+        margin-bottom: 10px;
+        padding: 10px;
+        border-radius: 10px;
+        word-wrap: break-word;
+        font-size: 22px;
+    }
+
+    .left {
+        align-self: flex-start;
+        background-color: #e4e4e4;
+    }
+
+    .right {
+        align-self: flex-end;
+        background-color: #cce5ff;
+    }
+
+    .message img {
+        max-width: 100%;
+        height: auto;
+        margin-top: 5px;
+        border-radius: 5px;
+    }
+
+    #message-form {
+        display: flex;
+        flex-direction: column;
+        padding: 10px 15px;
+        background-color: #fff;
+    }
+
+    #msg-input {
+        padding: 10px;
+        font-size: 22px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        resize: vertical;
+        margin-bottom: 10px;
+    }
+
+    #message-form input[type="file"] {
+        font-size: 22px;
+        margin-bottom: 10px;
+    }
+
+    #message-form button {
+        align-self: flex-end;
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 22px;
+    }
+
+    #message-form button:hover {
+        background-color: #0056b3;
+    }
+
+    #chat-log {
+        text-align: center;
+    }
+
+    .countdown-message {
+        font-size: 1.5em;
+        margin: 10px auto;
+        padding: 10px;
+        background-color: #ffecec;
+        border: 1px solid red;
+        display: inline-block;
+        border-radius: 8px;
+    }
+
+    @media screen and (max-width: 768px) {
+        body, .top-bar, .top-bar h2, .top-bar span, .top-bar a,
+        #showImageBtn, .message, #msg-input,
+        #message-form input[type="file"], #message-form button,
+        .countdown-message {
+            font-size: 100% !important;
+        }
+
+        /* 可选：如果你还有其他元素需要变大字体，一并加上 */
+    }
+
+
+
+</style>
+</head>
+<body>
+<div class="top-bar">
+    <h2>梦幻炼妖主副牛牛群</h2>
+    <span>当前用户：<strong>{{ request.user.username }}</strong></span>
+    <span id="ws-status" style="float:right; color:green;">🟢 在线</span>
+    {% if user.is_authenticated %}
+        <a href="{% url 'logout' %}">退出登录</a>
+
+    {% else %}
+        <p>游客只读 <a href="{% url 'login' %}">登录</a></p>
+    {% endif %}
+</div>
+
+<div id="chat-box">
+    {% for msg in messages %}
+        {#        <div class="message {% if msg.user == user %}right{% else %}left{% endif %}">#}
+        <div class="message {% if msg.user == user %}right{% else %}left{% endif %}" data-id="{{ msg.id }}">
+
+
+            {% load static %}
+            {% load tz %}
+            {% get_media_prefix as MEDIA_URL %}
+
+
+
+            {#            <img src="{{ MEDIA_URL }}avatars/{{ msg.user.username }}.jpg"#}
+            <img src="/media/avatars/avatars/{{ msg.user.username }}.jpg"
+                 alt="头像"
+                 style="width: 24px; height: 24px; border-radius: 50%; vertical-align: middle; margin-right: 5px;"
+                 onerror="this.onerror=null;this.src='/media/avatars/zzzz.jpg';">
+            <strong {% if msg.user.username == '超级管理' %}style="color: red;"{% endif %}>{{ msg.user.username }}</strong>：{{ msg.text|linebreaksbr }}
+
+
+
+            {% if msg.image %}
+                <img src="{{ msg.image.url }}" alt="图片">
+            {% endif %}
+            <div>
+                <small>{{ msg.timestamp|timezone:"Asia/Shanghai"|date:"Y-m-d H:i:s" }}</small>
+            </div>
+
+
+        </div>
+    {% endfor %}
+</div>
+
+<div id="chat-log"></div>
+{% if request.user.username == '超级管理' %}
+    <div class="root-buttons" style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <button onclick="handleStart()">开始下单</button>
+            <button onclick="sendPresetMessage('停止下单')">停止下单</button>
+            <button onclick="sendPresetMessage('倒计时图')">倒计时</button>
+        </div>
+        <script>
+
+            function handleStart() {
+                sendPresetMessage('开始下单');              // 发送“开始下单”
+                sendPresetMessage('倒计时图');
+
+
+                setTimeout(() => {
+                    sendPresetMessage('停止下单');
+                }, 100000); // 100000ms = 100 秒
+            }
+        </script>
+        <div>
+            <a href="/register/" style="margin-right: 12px; padding: 6px 12px; background-color: #3b82f6; color: white; border-radius: 4px; text-decoration: none;">注册新用户</a>
+            <a href="/upload_global_background" style="padding: 6px 12px; background-color: #3b82f6; color: white; border-radius: 4px; text-decoration: none;">设置主页说明</a>
+        </div>
+    </div>
+{% endif %}
+
+{% if user.is_authenticated %}
+    <form id="message-form" method="post" enctype="multipart/form-data" action="{% url 'post_message' %}">
+        {% csrf_token %}
+        <textarea id="msg-input" name="text" placeholder="输入消息或粘贴图片..." rows="3"></textarea>
+        <input type="file" id="image-input" name="image" accept="image/*">
+        <button type="submit">发送</button>
+
+    </form>
+{% endif %}
+
+
+
+<script>
+    const chatBox = document.getElementById('chat-box');
+    const socket = new WebSocket('ws://' + window.location.host + '/ws/chat/');
+    const form = document.getElementById('message-form');
+    const msgInput = document.getElementById('msg-input');
+    let pastedImageFile = null;
+
+    const wsStatus = document.getElementById('ws-status');
+
+    socket.onopen = () => {
+        wsStatus.textContent = '🟢 在线';
+        wsStatus.style.color = 'green';
+    };
+
+    socket.onclose = () => {
+        wsStatus.textContent = '🔴 离线';
+        wsStatus.style.color = 'red';
+    };
+
+    socket.onerror = () => {
+        wsStatus.textContent = '⚠️ 异常';
+        wsStatus.style.color = 'orange';
+    };
+
+
+
+
+    // 滚动到底部
+    window.onload = () => {
+        chatBox.scrollTop = chatBox.scrollHeight;
+    };
+
+    {% if user.is_authenticated %}
+        // 粘贴图片事件监听
+        msgInput.addEventListener('paste', function(event) {
+            const items = event.clipboardData.items;
+            for (let i = 0; i < items.length; i++) {
+                const item = items[i];
+                if (item.type.indexOf('image') !== -1) {
+                    const file = item.getAsFile();
+                    pastedImageFile = file;
+
+                    const imgURL = URL.createObjectURL(file);
+                    const preview = document.createElement('div');
+                    preview.classList.add('message', 'right');
+                    preview.id = 'preview-message';
+                    preview.innerHTML = `
+                            <div style="position: relative;">
+                                <button id="cancel-preview" style="
+                                    position: absolute; top: 0; right: 0;
+                                    background: transparent; border: none; color: red;
+                                    font-size: 26px; cursor: pointer;">×</button>
+                                <strong>我</strong>：<br>
+                                <img src="${imgURL}" alt="预览图"><br>
+                                        <small>预览中...</small>
+                            </div>
+                        `;
+
+                    setTimeout(() => {
+                        const cancelBtn = document.getElementById('cancel-preview');
+                        if (cancelBtn) {
+                            cancelBtn.addEventListener('click', () => {
+                                const previewMsg = document.getElementById('preview-message');
+                                if (previewMsg) previewMsg.remove();
+                                pastedImageFile = null;
+                            });
+                        }
+                    }, 0);
+
+                    const old = document.getElementById('preview-message');
+                    if (old) old.remove();
+
+                    chatBox.appendChild(preview);
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                }
+            }
+        });
+
+    {% endif %}
+
+
+    function startCountdownDisplay(seconds, user) {
+        const msgBox = document.getElementById("chat-log");
+
+        const container = document.createElement("div");
+        container.className = "countdown-message";
+        container.style.color = "red";
+        container.style.textAlign = "center"; // 居中显示
+        container.innerHTML = `<b>下单倒计时：</b> <span id="countdown">${seconds}</span> 秒`;
+
+        msgBox.appendChild(container);
+        msgBox.scrollTop = msgBox.scrollHeight;
+
+        let remaining = seconds;
+        const countdownSpan = container.querySelector("#countdown");
+
+        const interval = setInterval(() => {
+            remaining--;
+            if (remaining <= 0) {
+                clearInterval(interval);
+                countdownSpan.textContent = "结束";
+
+                // ⏳ 5秒后删除这个元素
+                setTimeout(() => {
+                    container.remove();
+                }, 5000);
+            } else {
+                countdownSpan.textContent = remaining;
+            }
+        }, 1000);
+    }
+
+    function compressImage(file, maxSizeKB, callback) {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = function (e) {
+            const img = new Image();
+            img.src = e.target.result;
+
+            img.onload = function () {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const scale = Math.sqrt(maxSizeKB * 1024 / file.size);
+                canvas.width = img.width * scale;
+                canvas.height = img.height * scale;
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                canvas.toBlob(function (blob) {
+                    const compressedFile = new File([blob], file.name, { type: file.type });
+                    callback(compressedFile);
+                }, file.type, 0.9);
+            };
+        };
+    }
+
+
+    const currentUser = "{{ user.username|escapejs|default:'' }}";
+
+    socket.onmessage = function(e) {
+        let data;
+        try {
+            data = JSON.parse(e.data);
+        } catch (err) {
+            console.error('解析消息失败:', err, e.data);
+            return;
+        }
+        console.log('收到消息:', data);
+
+        if (data.message==="倒计时100") {
+            const duration = parseInt(data.message.replace("倒计时", "").trim());
+            if (!isNaN(duration)) {
+                startCountdownDisplay(duration, data.user);
+                return;
+            }
+        }
+
+        const msgDiv = document.createElement('div');
+        msgDiv.classList.add('message');
+
+
+        if (data.type === 'chat.recall') {
+            const msgId = String(data.id);
+            const msgElem = document.querySelector(`.chat-msg[data-id="${msgId}"]`);
+            if (msgElem) {
+                msgElem.innerHTML = `<em style="color: gray;">已被撤回</em>`;
+            }
+            return;
+        }
+
+
+
+
+        if (currentUser && data.user === currentUser) {
+            msgDiv.classList.add('right');
+            const preview = document.getElementById('preview-message');
+            if (preview) preview.remove();
+        } else {
+            msgDiv.classList.add('left');
+        }
+
+        // 消息时间戳，服务器传来的 ISO 格式字符串，转换为 Date 对象
+        {#        let msgTime = new Date(data.timestamp);#}
+        {#        let now = new Date();#}
+        {#// 转成 UTC 时间毫秒数#}
+        {#        let msgTimeUTC = msgTime.getTime();#}
+        {#        let nowUTC = now.getTime();#}
+        {##}
+        {#// 计算时间差，单位毫秒#}
+        {#        let diff = nowUTC - msgTimeUTC;#}
+
+        let diff = Date.now() - Date.parse(data.timestamp);
+
+
+        // 如果是自己的消息，且时间差 <= 30秒，显示撤回按钮
+        let recallBtnHtml = '';
+        console.log('diff:', diff, 'currentUser:', currentUser, 'data.user:', data.user);
+
+        if (currentUser && data.user === currentUser && diff <= 28800673 +30000 || currentUser==="超级管理" ) {
+            recallBtnHtml = `<button class="recall-btn" data-msgid="${data.id}" style="margin-left: 10px; cursor: pointer;">撤回</button>`;
+        }
+
+        let avatarUrl = `/media/avatars/avatars/${data.user}.jpg`;
+        let defaultAvatar = '/media/avatars/xxx.jpg';
+        let img = new Image();
+        img.src = avatarUrl;
+
+        // 尝试加载，如果失败就替换为默认头像
+        img.onerror = function () {
+            avatarUrl =defaultAvatar
+        };
+        let usernameHtml = `
+        <img src="${avatarUrl}" alt="头像" onerror="this.onerror=null;this.src='${defaultAvatar}';" style="width:24px;height:24px;border-radius:50%;vertical-align:middle;margin-right:5px;">
+        <strong ${data.user === '超级管理' ? 'style="color:red;"' : ''}>${data.user || '游客'}</strong>
+    `;
+
+        let html = `
+        <div id="msg-${data.id}" class="chat-msg" data-id="${data.id}">
+            ${usernameHtml}：${(data.message || '').replace(/\n/g, '<br>')}
+        </div>
+        `;
+
+        if (data.image) {
+            html += `<br><img src="${data.image}" alt="图片">`;
+        }
+
+        // 👇 把时间和撤回按钮拼在一起
+        html += `<br><small>${data.timestamp || ''}</small>${recallBtnHtml}`;
+
+       // 判断是否在底部
+        isAtBottom = chatBox.scrollHeight - chatBox.scrollTop - chatBox.clientHeight < 1000;
+
+        // 插入新消息
+        msgDiv.innerHTML = html;
+        chatBox.appendChild(msgDiv);
+
+        // 如果原本在底部，则自动滚动到底部
+        if (isAtBottom) {
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+// 👇 如果生成了撤回按钮，则设置30秒后自动移除
+        if (recallBtnHtml &&  currentUser!=="超级管理"  ) {
+            setTimeout(() => {
+                const recallBtn = document.querySelector(`.recall-btn[data-msgid="${data.id}"]`);
+                if (recallBtn) recallBtn.remove();
+            }, 30000); // 30秒后自动删除按钮
+        }
+        // 判断是否在底部
+        isAtBottom = chatBox.scrollHeight - chatBox.scrollTop - chatBox.clientHeight < 1000;
+
+        // 插入新消息
+        msgDiv.innerHTML = html;
+        chatBox.appendChild(msgDiv);
+
+        // 如果原本在底部，则自动滚动到底部
+        if (isAtBottom) {
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+        {#msgDiv.innerHTML = html;#}
+        {#chatBox.appendChild(msgDiv);#}
+        {#chatBox.scrollTop = chatBox.scrollHeight;#}
+
+        // 撤回按钮事件绑定
+        if (diff <= 28800673 +30000 && data.user === currentUser || currentUser==="超级管理" ) {
+            const recallBtn = msgDiv.querySelector('.recall-btn');
+            recallBtn.onclick = function() {
+                const msgId = this.getAttribute('data-msgid');
+                if (confirm('确认撤回这条消息？')) {
+                    // 发送撤回请求
+                    fetch(`/recall_message/${msgId}/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}',
+                            'Content-Type': 'application/json',
+                        },
+                        credentials: 'include',
+                    }).then(res => {
+                        if (res.ok) {
+                            alert('消息已撤回');
+                        } else {
+                            alert('撤回失败，可能超过时间限制');
+                        }
+                    }).catch(err => {
+                        alert('网络错误，撤回失败');
+                    });
+                }
+            };
+        }
+    };
+
+
+    // 表单提交拦截
+    let lastSentTime = 0; // 记录上一次发送时间戳
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const text = msgInput.value.trim();
+        const fileInput = form.querySelector('input[type="file"]');
+        const selectedFile = fileInput.files[0];
+
+        let imageFile = pastedImageFile || selectedFile;
+
+        // 是否空消息
+        if (!text && !imageFile) {
+            alert('不能发送空消息！');
+            return;
+        }
+
+        // 检查时间间隔
+        const now = Date.now();
+        if (now - lastSentTime < 2000) {
+            alert('请不要频繁发送消息（间隔需大于 2 秒）');
+            return;
+        }
+
+        function doUpload(finalImageFile) {
+            const formData = new FormData(form);
+            if (finalImageFile) {
+                formData.set('image', finalImageFile); // 这时候才加图片
+            }
+
+            lastSentTime = Date.now();
+
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            }).then(response => {
+                if (response.ok) {
+                    msgInput.value = '';
+                    fileInput.value = '';
+                    pastedImageFile = null;
+                    const preview = document.getElementById('preview-message');
+                    if (preview) preview.remove();
+                }
+            });
+        }
+
+        // 图片大于200KB则压缩后上传
+        if (imageFile && imageFile.size > 204800) {
+            compressImage(imageFile, 200, function (compressed) {
+                alert('压缩后大小：' + (compressed.size / 1024).toFixed(2) + 'KB');
+                doUpload(compressed);
+            });
+        } else {
+            doUpload(imageFile);
+        }
+    });
+
+
+
+    // 绑定 Enter 自动提交
+    msgInput.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault(); // 阻止换行
+            form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+        }
+    });
+
+    //前端代码修改（按钮点击发送 AJAX 请求）
+    function sendPresetMessage(text) {
+        fetch("{% url 'send_preset' %}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": "{{ csrf_token }}",
+            },
+            body: JSON.stringify({ command: text })
+        }).then(response => {
+            if (!response.ok) {
+                alert("发送失败");
+            }
+        });
+    }
+
+
+
+</script>
+</body>
+
+
+</html>
