@@ -517,15 +517,8 @@
             recallBtnHtml = `<button class="recall-btn" data-msgid="${data.id}" style="margin-left: 10px; cursor: pointer;">撤回</button>`;
         }
 
-        let avatarUrl = `/media/avatars/avatars/${data.user}.jpg`;
-        let defaultAvatar = '/media/avatars/xxx.jpg';
-        let img = new Image();
-        img.src = avatarUrl;
-
-        // 尝试加载，如果失败就替换为默认头像
-        img.onerror = function () {
-            avatarUrl =defaultAvatar
-        };
+        let defaultAvatar = '/media/avatars/xxx.png';
+        let avatarUrl = data.avatar || defaultAvatar;
         let usernameHtml = `
         <img src="${avatarUrl}" alt="头像" onerror="this.onerror=null;this.src='${defaultAvatar}';" style="width:24px;height:24px;border-radius:50%;vertical-align:middle;margin-right:5px;">
         <strong ${data.user === '超级管理' ? 'style="color:red;"' : ''}>${data.user || '游客'}</strong>

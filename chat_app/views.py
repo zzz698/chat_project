@@ -135,6 +135,8 @@ def register(request):
 
 def broadcast_message(message):
     channel_layer = get_channel_layer()
+    profile = getattr(message.user, 'profile', None)
+    avatar = profile.avatar.url if (profile and profile.avatar) else ""
     async_to_sync(channel_layer.group_send)(
         "chat_room",
         {
@@ -143,7 +145,8 @@ def broadcast_message(message):
             "user": message.user.username,
             "timestamp": message.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
             "image": message.image.url if message.image else "",
-            "id": message.id,  # 加上 ID
+            "id": message.id,
+            "avatar": avatar,
         }
     )
 
@@ -253,20 +256,21 @@ def post_message(request):
             message.user = request.user
             message.save()
 
+            profile = getattr(request.user, 'profile', None)
+            avatar = profile.avatar.url if (profile and profile.avatar) else ""
+
             # ✅ 发送 WebSocket 广播消息
             channel_layer = get_channel_layer()
             async_to_sync(channel_layer.group_send)(
-                "chat_room",  # group name，和 consumer 一致
+                "chat_room",
                 {
                     "type": "chat.message",
                     "message": message.text,
                     "user": message.user.username,
-                    # "timestamp": localtime(message.timestamp).strftime("%Y-%m-%d %H:%M:%S"),
                     "timestamp": message.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
-
-                    # 如果有图片，发送图片路径（可选）
                     "image": message.image.url if message.image else "",
-                    "id": message.id,  # 加上 ID
+                    "id": message.id,
+                    "avatar": avatar,
                 }
             )
     return redirect('chatroom')
