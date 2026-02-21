@@ -105,7 +105,7 @@ chat_project/
 
 ```bash
 # 1. 克隆项目
-git clone <repo-url>
+git clone https://github.com/zzz698/chat_project.git
 cd chat_project
 
 # 2. 创建虚拟环境并安装依赖
