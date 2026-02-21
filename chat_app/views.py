@@ -8,14 +8,12 @@ from .models import Message
 from .forms import MessageForm
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
-from django.utils.timezone import localtime
 import os
 from django.contrib.auth import logout
 from django.shortcuts import redirect
 
 from django.http import JsonResponse, HttpResponseNotFound, HttpResponseForbidden
 from .models import Message
-from django.utils.timezone import localtime
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect
 from .models import Message  # 你的消息模型
@@ -143,7 +141,7 @@ def broadcast_message(message):
             "type": "chat.message",
             "message": message.text,
             "user": message.user.username,
-            "timestamp": localtime(message.timestamp).strftime("%Y-%m-%d %H:%M:%S"),
+            "timestamp": message.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
             "image": message.image.url if message.image else "",
             "id": message.id,  # 加上 ID
         }
@@ -264,7 +262,7 @@ def post_message(request):
                     "message": message.text,
                     "user": message.user.username,
                     # "timestamp": localtime(message.timestamp).strftime("%Y-%m-%d %H:%M:%S"),
-                    "timestamp": (localtime(message.timestamp) + timedelta(hours=8)).strftime("%Y-%m-%d %H:%M:%S"),
+                    "timestamp": message.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
 
                     # 如果有图片，发送图片路径（可选）
                     "image": message.image.url if message.image else "",
