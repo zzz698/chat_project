@@ -22,7 +22,7 @@ import os
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
-from .models import GlobalBackground
+from .models import GlobalBackground, Profile
 from .forms import BackgroundImageForm
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
@@ -112,12 +112,12 @@ def register(request):
         if user_form.is_valid() and profile_form.is_valid():
             user = user_form.save(commit=False)
             user.set_password(user_form.cleaned_data['password'])
-            user.save()  # 触发信号自动创建 Profile
+            user.save()
 
-            # 直接更新信号创建的 Profile 头像
+            profile, _ = Profile.objects.get_or_create(user=user)
             if 'avatar' in request.FILES:
-                user.profile.avatar = request.FILES['avatar']
-                user.profile.save()
+                profile.avatar = request.FILES['avatar']
+                profile.save()
 
             return redirect('login')
     else:
