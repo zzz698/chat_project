@@ -42,7 +42,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'user': event['user'],
             'timestamp': event['timestamp'],
             'image': event.get('image', ''),
-            "id": event['id'],
+            'id': event['id'],
+            'avatar': event.get('avatar', ''),
         }))
 
     async def chat_recall(self, event):
