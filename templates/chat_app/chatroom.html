@@ -257,10 +257,10 @@
 
 
             {#            <img src="{{ MEDIA_URL }}avatars/{{ msg.user.username }}.jpg"#}
-            <img src="/media/avatars/avatars/{{ msg.user.username }}.jpg"
+            <img src="{% if msg.user.profile.avatar %}{{ msg.user.profile.avatar.url }}{% else %}/media/avatars/avatars/zzzz.jpg{% endif %}"
                  alt="头像"
                  style="width: 24px; height: 24px; border-radius: 50%; vertical-align: middle; margin-right: 5px;"
-                 onerror="this.onerror=null;this.src='/media/avatars/zzzz.jpg';">
+                 onerror="this.onerror=null;this.src='/media/avatars/avatars/zzzz.jpg';">
             <strong {% if msg.user.username == '超级管理' %}style="color: red;"{% endif %}>{{ msg.user.username }}</strong>：{{ msg.text|linebreaksbr }}
 
 

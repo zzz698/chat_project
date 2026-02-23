@@ -323,9 +323,10 @@
     <div id="chat-box">
         {% for msg in messages %}
         <div class="message {% if msg.user == user %}right{% else %}left{% endif %}" data-id="{{ msg.id }}">
-            <a href="/media/avatars/avatars/{{ msg.user.username }}.jpg" target="_blank">
-                <img src="/media/avatars/avatars/{{ msg.user.username }}.jpg" alt="头像" class="avatar"
-                     onerror="this.onerror=null;this.src='/media/avatars/zzzz.jpg';">
+            <a href="{% if msg.user.profile.avatar %}{{ msg.user.profile.avatar.url }}{% else %}/media/avatars/avatars/zzzz.jpg{% endif %}" target="_blank">
+                <img src="{% if msg.user.profile.avatar %}{{ msg.user.profile.avatar.url }}{% else %}/media/avatars/avatars/zzzz.jpg{% endif %}"
+                     alt="头像" class="avatar"
+                     onerror="this.onerror=null;this.src='/media/avatars/avatars/zzzz.jpg';">
             </a>
             
             <strong {% if msg.user.username == '超级管理' %}style="color: red;"{% endif %}>{{ msg.user.username }}</strong>
@@ -617,12 +618,12 @@
             msgDiv.dataset.id = data.id;
             
             // 头像处理
-            let avatarUrl = `/media/avatars/avatars/${data.user}.jpg`;
-            let defaultAvatar = '/media/avatars/zzzz.jpg';
-            
+            let defaultAvatar = '/media/avatars/avatars/zzzz.jpg';
+            let avatarUrl = data.avatar || defaultAvatar;
+
             // 消息内容
             let html = `
-                <a href="/media/avatars/avatars/${data.user}.jpg" target="_blank">
+                <a href="${avatarUrl}" target="_blank">
                     <img src="${avatarUrl}" alt="头像" class="avatar" onerror="this.onerror=null;this.src='${defaultAvatar}';">
                 </a>
                 <strong ${data.user === '超级管理' ? 'style="color:red;"' : ''}>${data.user || '游客'}</strong>
