@@ -718,7 +718,6 @@
         // 图片大于1MB则压缩后上传
         if (imageFile && imageFile.size > 1024 * 1024) {
             compressImage(imageFile, 1024, function (compressed) {
-                alert('压缩后大小：' + (compressed.size / 1024).toFixed(2) + 'KB');
                 doUpload(compressed);
             });
         } else {
