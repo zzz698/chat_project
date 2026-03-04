@@ -72,6 +72,11 @@
     <img src="{% if global_background_url %}{{ global_background_url }}{% else %}/static/default_bg.jpg{% endif %}" alt="弹出图片" />
 </div>
 
+<div id="chat-image-modal">
+    <span id="chat-image-close">&times;</span>
+    <img id="chat-image-preview" src="" alt="聊天图片预览">
+</div>
+
 <script>
     const btn = document.getElementById('showImageBtn');
     const modal = document.getElementById('imageModal');
@@ -164,6 +169,40 @@
         height: auto;
         margin-top: 5px;
         border-radius: 5px;
+    }
+
+    .chat-image {
+        cursor: zoom-in;
+    }
+
+    #chat-image-modal {
+        display: none;
+        position: fixed;
+        z-index: 1200;
+        left: 0;
+        top: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, 0.85);
+        justify-content: center;
+        align-items: center;
+    }
+
+    #chat-image-preview {
+        max-width: 92vw;
+        max-height: 88vh;
+        border-radius: 8px;
+        box-shadow: 0 0 15px #000;
+    }
+
+    #chat-image-close {
+        position: absolute;
+        top: 20px;
+        right: 30px;
+        color: #fff;
+        font-size: 32px;
+        font-weight: bold;
+        cursor: pointer;
     }
 
     #message-form {
@@ -266,7 +305,7 @@
 
 
             {% if msg.image %}
-                <img src="{{ msg.image.url }}" alt="图片">
+                <img src="{{ msg.image.url }}" alt="图片" class="chat-image">
             {% endif %}
             <div>
                 <small>{{ msg.timestamp|timezone:"Asia/Shanghai"|date:"Y-m-d H:i:s" }}</small>
@@ -322,8 +361,32 @@
     const form = document.getElementById('message-form');
     const msgInput = document.getElementById('msg-input');
     let pastedImageFile = null;
+    const chatImageModal = document.getElementById('chat-image-modal');
+    const chatImagePreview = document.getElementById('chat-image-preview');
+    const chatImageClose = document.getElementById('chat-image-close');
 
     const wsStatus = document.getElementById('ws-status');
+
+    if (chatImageClose) {
+        chatImageClose.addEventListener('click', function () {
+            chatImageModal.style.display = 'none';
+        });
+    }
+
+    if (chatImageModal) {
+        chatImageModal.addEventListener('click', function (event) {
+            if (event.target === chatImageModal) {
+                chatImageModal.style.display = 'none';
+            }
+        });
+    }
+
+    document.addEventListener('click', function (event) {
+        if (event.target.classList && event.target.classList.contains('chat-image')) {
+            chatImagePreview.src = event.target.src;
+            chatImageModal.style.display = 'flex';
+        }
+    });
 
     socket.onopen = () => {
         wsStatus.textContent = '🟢 在线';
@@ -531,7 +594,7 @@
         `;
 
         if (data.image) {
-            html += `<br><img src="${data.image}" alt="图片">`;
+            html += `<br><img src="${data.image}" alt="图片" class="chat-image">`;
         }
 
         // 👇 把时间和撤回按钮拼在一起
@@ -651,9 +714,9 @@
             });
         }
 
-        // 图片大于200KB则压缩后上传
-        if (imageFile && imageFile.size > 204800) {
-            compressImage(imageFile, 200, function (compressed) {
+        // 图片大于500KB则压缩后上传
+        if (imageFile && imageFile.size > 500 * 1024) {
+            compressImage(imageFile, 500, function (compressed) {
                 alert('压缩后大小：' + (compressed.size / 1024).toFixed(2) + 'KB');
                 doUpload(compressed);
             });
