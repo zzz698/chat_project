@@ -526,8 +526,8 @@
             }
             
             // 图片压缩处理
-            if (imageFile && imageFile.size > 500 * 1024) {
-                compressImage(imageFile, 500, function(compressed) {
+            if (imageFile && imageFile.size > 1024 * 1024) {
+                compressImage(imageFile, 1024, function(compressed) {
                     doUpload(compressed);
                 });
             } else {

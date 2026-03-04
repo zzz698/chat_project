@@ -53,8 +53,8 @@ class Message(models.Model):
         return Message.objects.filter(id__in=ids).order_by('timestamp')
 
     def save(self, *args, **kwargs):
-        # 如果有上传图片且超过500KB，进行压缩
-        if self.image and self.image.size > 500 * 1024:
+        # 如果有上传图片且超过1MB，进行压缩
+        if self.image and self.image.size > 1024 * 1024:
             img = Image.open(self.image)
             output = BytesIO()
 
@@ -67,7 +67,7 @@ class Message(models.Model):
             while True:
                 output.seek(0)
                 img.save(output, format=format, quality=quality)
-                if output.tell() <= 500 * 1024 or quality < 30:
+                if output.tell() <= 1024 * 1024 or quality < 30:
                     break
                 quality -= 5
 
